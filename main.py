@@ -1,34 +1,34 @@
-from bs4 import BeautifulSoup
 import requests
+from bs4 import BeautifulSoup
 
-url = 'https://parsinger.ru/html/index3_page_1.html'
+headers = {
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36',
+    'x-requested-with': 'XMLHttpRequest'
+}
+
+url = "https://parsinger.ru/table/5/index.html"
 
 response = requests.get(url=url)
 response.encoding = 'utf-8'
+
 soup = BeautifulSoup(response.text, 'lxml')
-shuma = 'https://parsinger.ru/html/'
-pagin = [shuma+t['href'] for t in soup.find('div', 'pagen').find_all('a')]
+dict1 = {}
 
-#print(soup)
+res = [[float(i) for i in x.text.split('\n')[1:-1]] for x in soup.find('div', 'main').find_all('tr')[1:]]
 
-res_art = []
+print(len(res))
+print(res)
+result = [0] * 15
 
-link_item = []
-for p in pagin:
-    resp = requests.get(url=p)
-    resp.encoding = 'utf-8'
-    s = BeautifulSoup(resp.text, 'lxml')
-    [link_item.append(shuma+link.find('a')['href']) for link in s.find_all('div', class_='img_box')]
+for k in res:
+    for key in range(1, 16):
+        key_string = f'{key} column'
+        dict1.setdefault(key_string, )
 
-#print(link_item)
 
-for item in link_item:
-    resp1 = requests.get(url=item)
-    resp1.encoding = 'utf-8'
-    soup1 = BeautifulSoup(resp1.text, 'lxml')
-    res_art.append(int(soup1.find('p', 'article').text.split()[-1]))
 
-print(sum(res_art))
+
+
 
 
 

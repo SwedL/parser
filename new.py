@@ -1,26 +1,54 @@
+import csv
 import requests
 from bs4 import BeautifulSoup
 
-headers = {
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36',
-    'x-requested-with': 'XMLHttpRequest'
-}
 
-url = "https://parsinger.ru/table/5/index.html"
+shema = "https://parsinger.ru/html/"
+headers = ['Наименование',
+           'Артикул',
+           'Бренд',
+           'Модель',
+           'Тип',
+           'Технология экрана',
+           'Материал корпуса',
+           'Материал браслета',
+           'Размер',
+           'Сайт производителя',
+           'Наличие',
+           'Цена',
+           'Старая цена',
+           'Ссылка на карточку с товаром'
+           ]
 
-response = requests.get(url=url)
-response.encoding = 'utf-8'
 
-soup = BeautifulSoup(response.text, 'lxml')
-dict1 = {}
+# функция приготовления супа по указанному URL
+def resp(url: str):
+    response = requests.get(url=url)
+    response.encoding = 'utf-8'
+    return BeautifulSoup(response.text, 'lxml')
 
-res = [[float(i) for i in x.text.split('\n')[1:-1]] for x in soup.find('div', 'main').find_all('tr')[1:]]
 
-print(len(res))
-print(res)
-result = [0] * 15
+with open('res.csv', 'w', encoding='utf-8-sig', newline='') as file:
+    writer = csv.writer(file, delimiter=';')
+    writer.writerow(headers)
+    links_items = []
 
-for k in res:
-    for key in range(1, 16):
-        key_string = f'{key} column'
-        dict1.setdefault(key_string, )
+    # проходим по всем страницам категории и получаем все ссылки на предметы
+    for page in range(1, 5):
+        soup = resp(shema + f'index1_page_{str(page)}.html')
+        links_items.extend([shema + i.find('a')['href'] for i in soup.find_all('div', 'img_box')])
+
+    # проходим по всем ссылкам и собираем необходимые данные
+    for link in links_items:
+        soup = resp(link)
+
+        name = soup.find('p', id='p_header').text
+        article = soup.find('p', class_='article').text.split()[1]
+        description = [i.text.split(': ')[1] for i in soup.find('div', 'description').find_all('li')]
+        in_stock = soup.find('span', id='in_stock').text.split()[2]
+        price = soup.find('span', id='price').text
+        old_price = soup.find('span', id='old_price').text
+
+        # создаём строку с данными и записываем в файл
+        row = name, article, *description, in_stock, price, old_price, link
+        writer.writerow(row)

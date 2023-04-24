@@ -1,32 +1,22 @@
-
-
-
 import time
-from selenium.webdriver.common.keys import Keys
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
+from telethon import TelegramClient, events, sync, connection
 
 
-url = 'https://parsinger.ru/scroll/training_task_3/'
+r_api = '15952889'
+r_hash = '19d544ca657257dca2dcf7490980d6d1'
+res = 0
 
 
-with webdriver.Chrome() as browser:
-    browser.get(url)
-    tags_input = browser.find_elements(By.TAG_NAME, 'input')
-    list_res = []
 
-    for num, tag in enumerate(tags_input, 1):
-        tag.click()
-        x = browser.find_element(By.ID, f'result{num}')
-        if x.text:
-            list_res.append(num)
-
-        tag.send_keys(Keys.DOWN)
-
-    #list_res = [i.text for i in browser.find_elements(By.ID, 'result')]
-    print(sum(list_res))
-
-
+with TelegramClient('my', r_api, r_hash) as client:
+    all_message = client.get_messages('https://t.me/Parsinger_Telethon_Test')
+    for message in all_message:
+        res += int(message.message)
+        print(message.message)
+        if message.pinned:
+            res3 = message.from_id.user_id
+    print(res)
+    print(res3)
+    time.sleep(5)
 
 

@@ -1,29 +1,32 @@
-
-
-
+import asyncio
 import time
-from selenium.webdriver.common.keys import Keys
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
+from aiohttp import ClientSession
 
 
-url = 'https://parsinger.ru/scroll/3/'
+async def get_weather(city):
+    async with ClientSession() as session:
+        url = f'http://api.openweathermap.org/data/2.5/weather'
+        params = {'q': city, 'APPID': '2a4ff86f9aaa70041ec8e82db64abf56'}
+
+        async with session.get(url=url, params=params) as response:
+            weather_json = await response.json()
+            print(f'{city}: {weather_json["weather"][0]["main"]}')
 
 
-with webdriver.Chrome() as browser:
-    browser.get(url)
-    tags_input = browser.find_elements(By.TAG_NAME, 'input')
-    list_res = []
+async def main(cities_):
+    tasks = []
+    for city in cities_:
+        tasks.append(asyncio.create_task(get_weather(city)))
 
-    for tag in tags_input:
-        tag.click()
-        tag.send_keys(Keys.DOWN)
-
-    list_res = [num for num, i in enumerate(browser.find_elements(By.CSS_SELECTOR, 'span'), 1) if i.text]
-    print(list_res)
-    print(sum(list_res))
+    for task in tasks:
+        await task
 
 
+cities = ['Moscow', 'St. Petersburg', 'Rostov-on-Don', 'Kaliningrad', 'Vladivostok',
+          'Minsk', 'Beijing', 'Delhi', 'Istanbul', 'Tokyo', 'London', 'New York']
 
+print(time.strftime('%X'))
 
+asyncio.run(main(cities))
+
+print(time.strftime('%X'))
